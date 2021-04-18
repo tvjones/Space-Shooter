@@ -8,39 +8,25 @@ HEIGHT=550
 WIDTH=550
 SIZE=(550,550)
 
+#colours
 BLACK = (0,0,0)
 WHITE=(255,255,255)
-#GREEN=(0,255,0)
-#RED=(255,0,0)
+RED =(255,0,0)
 
 win=pygame.display.set_mode(SIZE)
 
 pygame.display.set_caption('Space Shooter')
 
-#Background 
-BG = pygame.transform.scale(pygame.image.load("pictures/space.jpg"),SIZE)
 
-#Brick
-brick =  pygame.transform.scale(pygame.image.load("pictures/brick.png"),(60,60))
-
-#Rocket
-rocket = pygame.transform.scale(pygame.image.load("pictures/rocket.png"),(60,60))
-
-def loadBG():
-    win.blit(BG,(0,0))
-
-
-
-
-   
 
 class Brick:
     def __init__(self):
-        self.surface = pygame.transform.scale(pygame.image.load("pictures/brick.png"),(60,60))
-        self.y = 0
-        self.x= random.randint(0,WIDTH-60)
         self.width = 60
         self.height = 60
+        self.surface = pygame.transform.scale(pygame.image.load("pictures/brick.png"),(self.width,self.height))
+        self.y = 0
+        self.x= random.randint(0,WIDTH-60)
+        
     
     def drawBrick(self):
         win.blit(self.surface,(self.x,self.y))
@@ -52,40 +38,40 @@ class Brick:
 
 class Rocket:
     def __init__(self):
-        self.surface =  pygame.transform.scale(pygame.image.load("pictures/rocket.png"),(60,60))
-        self.x = (WIDTH/2)-30
-        self.y = 490
         self.width = 60
         self.height = 60
-
+        self.surface =  pygame.transform.scale(pygame.image.load("pictures/rocket.png"),(self.width,self.height))
+        self.x = (WIDTH/2)-30
+        self.y = 490
+  
     def drawRocket(self):
         win.blit(self.surface,(self.x,self.y))
     
     def move(self,pos):
-        if(self.x+pos<=WIDTH-60 and self.x+pos>=0):
+        if(self.x+pos<=WIDTH-self.width and self.x+pos>=0):
             self.x+=pos
         self.drawRocket()
 
     def clearRocket(self):
-        pygame.draw.rect(win, BLACK, pygame.Rect(self.x, self.y, 60,60))
+        pygame.draw.rect(win, BLACK, pygame.Rect(self.x, self.y, self.width,self.height))
 
 class Bullet:
     def __init__(self,x,y):
         self.x=x
         self.y=y
-    
-  #  def shoot(self,rocket):
-   #     self.x = rocket.x
-    #    self.y = rocket.y
+        self.width=5
+        self.height=5
 
     def drawBullet(self):
-        pygame.draw.rect(win, WHITE, pygame.Rect(self.x,self.y,5,5))
+        pygame.draw.rect(win, WHITE, pygame.Rect(self.x,self.y,self.width,self.height))
 
     def clearBullet(self):
-        pygame.draw.rect(win, BLACK, pygame.Rect(self.x, self.y, 5,5))
-    
+        pygame.draw.rect(win, BLACK, pygame.Rect(self.x, self.y, self.width,self.height))
 
     
+font = pygame.font.Font('freesansbold.ttf', 32)
+GAMEOVER = font.render('GAME OVER', True, RED, WHITE)
+
 
 def main():
     run = True
@@ -93,16 +79,23 @@ def main():
     var = 0
     bricks=[]
     bullets=[]
+
     clock = pygame.time.Clock()
     rocket = Rocket()
     rocket.drawRocket()
+    
     while(run):
         clock.tick(FPS)
-        # loadBG()
+    
         for brick in bricks:
-            if(brick.y>=HEIGHT-60 or (rocket.x+60-rocket.x in range(brick.x,brick.x+61) and brick.y >= HEIGHT-120)):
+            #when a brick drops to the bottom
+            if(brick.y>=HEIGHT-brick.height or ((rocket.x+rocket.width)-rocket.x in range(brick.x,brick.x+brick.width+1) and brick.y >= HEIGHT- rocket.height+brick.height)):
+                win.fill(BLACK)
+                win.blit(GAMEOVER,((WIDTH//3)-30,HEIGHT/2))
+                pygame.display.update()
+                pygame.time.delay(5000)
                 run = False
-        if(var==120):
+        if(var==60):
             newBrick = Brick()
             bricks.append(newBrick)
             for brick in bricks:
@@ -124,7 +117,7 @@ def main():
             bullet =Bullet(rocket.x+30,rocket.y)
             bullets.append(bullet)
             bullet.drawBullet()
-        #if (var==1):
+
         for bullet in bullets:
             for brick in bricks:
                 if(bullet.x in range(brick.x,brick.x+61) and bullet.y == brick.y):
@@ -132,8 +125,10 @@ def main():
                     bricks.remove(brick)
                     bullet.y=1000
                     bullets.remove(bullet)
-                if(brick.y>=HEIGHT-60 or (rocket.x in range(brick.x,brick.x+61) and brick.y >= HEIGHT-60)):
-                    run = False
+                    try:
+                        bricks.remove(brick)
+                    except:
+                        print("no brick to remove")
             bullet.clearBullet()
             bullet.y -=10
             bullet.drawBullet()
@@ -145,6 +140,5 @@ def main():
           
         pygame.display.update()
         var+=1
-main()
-           
 
+main()
